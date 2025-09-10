@@ -24,13 +24,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/what-we-do" element={<WhatWeDo />} />
-            <Route path="/impact" element={<Impact />} />
-            <Route path="/knowledge" element={<Knowledge />} />
-            <Route path="/get-involved" element={<GetInvolved />} />
+          <Route path="/OSG" element={<Layout />}>
+            <Route index element={<Index />} />
+            <Route path="about" element={<About />} />
+            <Route path="what-we-do" element={<WhatWeDo />} />
+            <Route path="impact" element={<Impact />} />
+            <Route path="knowledge" element={<Knowledge />} />
+            <Route path="get-involved" element={<GetInvolved />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

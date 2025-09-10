@@ -1,70 +1,78 @@
 import { useEffect, useRef, useState } from "react";
 import ReferenceFooterSection from "@/components/ReferenceFooterSection";
+import { useLocation } from "react-router-dom";
 
 function TestimonialsSlider() {
-  // Simple auto-slide logic using translateX on a track
-  const intervalMs = 3000; // 3s
-  const [index, setIndex] = useState(0);
-  const cardsPerView = 4; // desktop reference; layout remains responsive
-
+  // Continuous marquee-like slider (anti-clockwise / leftwards)
   const testimonials = [
     {
       quote:
         "We started waste segregation in our apartment with OSG’s help — it’s now part of our daily habit!",
       name: "Anjali Mehta",
       org: "Welfare Association, Gurugram",
-      avatar: "/frame-701.png",
+      avatar: "/OSG/frame-701.png",
     },
     {
       quote:
         "OSG’s awareness drive transformed how our society handles recycling and dry waste pickups.",
       name: "Rahul Verma",
       org: "Resident Welfare Society, Delhi",
-      avatar: "/frame-701.png",
+      avatar: "/OSG/frame-701.png",
     },
     {
       quote:
         "Tree plantation with OSG brought our community together — a greener colony feels possible.",
       name: "Priya Sharma",
       org: "Eco Club, Noida",
-      avatar: "/frame-701.png",
+      avatar: "/OSG/frame-701.png",
     },
     {
       quote:
         "Segregation at source finally clicked for us. Clear, simple, and effective guidance by OSG.",
       name: "Kunal Kapoor",
       org: "Housing Society, Faridabad",
-      avatar: "/frame-701.png",
+      avatar: "/OSG/frame-701.png",
     },
     {
       quote:
         "The pickups are so convenient — we’ve drastically reduced landfill waste as a society.",
       name: "Meera Iyer",
       org: "RWA, Gurgaon",
-      avatar: "/frame-701.png",
+      avatar: "/OSG/frame-701.png",
     },
   ];
 
-  // For continuous loop effect, duplicate the list
-  const loopList = [...testimonials, ...testimonials];
+  // Build a long track for seamless loop
+  const loopList = [...testimonials, ...testimonials, ...testimonials];
+
+  // Continuous animation position
+  const [pos, setPos] = useState(0);
+  const speed = 0.05; // percent per frame for smooth continuous slide
 
   useEffect(() => {
-    const id = setInterval(() => {
-      setIndex((prev) => (prev + 1) % testimonials.length);
-    }, intervalMs);
-    return () => clearInterval(id);
-  }, [intervalMs, testimonials.length]);
+    let raf: number;
+    const step = () => {
+      setPos((prev) => {
+        const next = prev + speed; // move leftwards (anti-clockwise)
+        // Reset after one full item width to create seamless loop
+        return next >= 100 ? 0 : next;
+      });
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   return (
     <div className="w-full overflow-hidden">
       <div
-        className="flex gap-4 transition-transform duration-700 ease-out"
-        style={{ transform: `translateX(-${(index * 100) / cardsPerView}%)` }}
+        className="flex gap-4 will-change-transform"
+        style={{ transform: `translateX(-${pos}%)` }} aria-live="off" aria-hidden
       >
         {loopList.map((t, i) => (
           <div
             key={i}
-            className="min-w-[80%] sm:min-w-[48%] md:min-w-[32%] lg:min-w-[24%] bg-white rounded-2xl border border-black/10 p-5 md:p-6 shadow-sm"
+            className="min-w-[80%] sm:min-w-[48%] md:min-w-[32%] lg:min-w-[24%] bg-white rounded-2xl border border-black/25 p-5 md:p-6 shadow-sm hover:shadow-md hover:border-black/40 transition-shadow transition-colors"
           >
             <p className="text-sm md:text-base text-black font-urbanist opacity-80 mb-5">“{t.quote}”</p>
             <div className="flex items-center gap-3">
@@ -86,11 +94,24 @@ function TestimonialsSlider() {
 }
 
 export default function Index() {
+  const location = useLocation();
   // Smoothly scroll to the About section
   const scrollToAbout = () => {
     const el = document.getElementById("about");
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+
+  // Scroll to target section if provided via navigation state
+  useEffect(() => {
+    const id = (location.state as any)?.scrollTo as string | undefined;
+    if (id) {
+      // small timeout ensures DOM is painted
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 0);
+    }
+  }, [location.state]);
 
   return (
     <main className="w-full">
@@ -99,13 +120,14 @@ export default function Index() {
         {/* Background Video */}
         <video
           className="absolute inset-0 w-full h-full object-cover"
-          src="/Generating_a_River_Video_3.mp4"
+          src="/OSG/Generating_a_River_Video_3.mp4"
           autoPlay
           loop
           muted
           playsInline
           preload="metadata"
           aria-hidden="true"
+          poster="/OSG/frame-300.png"
         />
 
         {/* Overlay with gradient */}
@@ -139,7 +161,7 @@ export default function Index() {
                     <span className="text-black font-urbanist text-base font-medium">Get Involved</span>
 
                     {/* Arrow Icon */}
-                    <img src="/solar-arrow-up-outline0.svg" alt="arrow" className="ml-2 w-[31px] h-[31px] rounded-full transition-transform duration-300 group-hover:rotate-45" />
+                    <img src="/OSG/solar-arrow-up-outline0.svg" alt="arrow" className="ml-2 w-[31px] h-[31px] rounded-full transition-transform duration-300 group-hover:rotate-45" />
                   </button>
                 </div>
               </div>
@@ -149,7 +171,7 @@ export default function Index() {
       </section>
 
       {/* About Us Section - matches uploaded design */}
-      <section id="about" className="bg-white py-16 md:py-20 lg:py-24 px-4 md:px-16">
+      <section id="about" className="scroll-mt-24 bg-white py-16 md:py-20 lg:py-24 px-4 md:px-16">
         <div className="max-w-7xl mx-auto">
           {/* Section Tag */}
           <div className="flex justify-center mb-10">
@@ -162,20 +184,20 @@ export default function Index() {
           </div>
 
           {/* Main Content Container */}
-          <div className="flex flex-col items-start gap-16 lg:gap-24 max-w-6xl">
+          <div className="flex flex-col items-center lg:items-start gap-16 lg:gap-24 max-w-6xl">
             {/* Headline */}
-            <h2 className="text-[#000] font-urbanist text-[60px] font-medium leading-[1.1] w-[987px]">
+            <h2 className="text-[#000] font-urbanist text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium leading-tight w-full max-w-[987px] text-center lg:text-left">
               Empowering Change Through Green Action, One Step at a Time
             </h2>
 
             {/* Stats and Description Layout */}
-            <div className="flex flex-col lg:flex-row justify-between items-start gap-12 lg:gap-20 w-full">
+            <div className="flex flex-col lg:flex-row justify-between items-center lg:items-start gap-12 lg:gap-20 w-full">
               {/* Left: Statistics */}
               <div className="flex flex-col sm:flex-row gap-12 lg:gap-20">
                 {/* Stat 1 */}
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-end gap-0">
-                    <span className="text-black font-inter text-5xl sm:text-6xl lg:text-7xl font-normal leading-none">45</span>
+                <div className="flex flex-col gap-3 text-center sm:text-left">
+                  <div className="flex items-end gap-0 justify-center sm:justify-start">
+                    <span className="text-black font-inter text-4xl sm:text-5xl lg:text-7xl font-normal leading-none">45</span>
                     <span className="text-black font-urbanist text-4xl sm:text-5xl lg:text-6xl font-normal leading-none mb-1">+</span>
                   </div>
                   <p className="text-black font-urbanist text-base font-normal leading-normal opacity-70 max-w-[200px]">
@@ -184,9 +206,9 @@ export default function Index() {
                 </div>
 
                 {/* Stat 2 */}
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-end gap-0">
-                    <span className="text-black font-inter text-5xl sm:text-6xl lg:text-7xl font-normal leading-none">157</span>
+                <div className="flex flex-col gap-3 text-center sm:text-left">
+                  <div className="flex items-end gap-0 justify-center sm:justify-start">
+                    <span className="text-black font-inter text-4xl sm:text-5xl lg:text-7xl font-normal leading-none">157</span>
                     <span className="text-black font-urbanist text-4xl sm:text-5xl lg:text-6xl font-normal leading-none mb-1">k+</span>
                   </div>
                   <p className="text-black font-urbanist text-base font-normal leading-normal opacity-70 max-w-[250px]">
@@ -196,13 +218,13 @@ export default function Index() {
               </div>
 
               {/* Right: Description and CTA */}
-              <div className="flex flex-col gap-9 max-w-[533px] lg:justify-center">
-                <p className="text-black font-urbanist text-lg sm:text-xl font-normal leading-normal opacity-70">
+              <div className="flex flex-col gap-9 max-w-[533px] lg:justify-center w-full">
+                <p className="text-black font-urbanist text-base sm:text-lg font-normal leading-relaxed opacity-80 text-center lg:text-left px-2">
                   OneStepGreener (OSG) is a dynamic social initiative focused on waste management, recycling, and tree plantation in India's National Capital Region. Launched by young pioneers Vihaan and Nav Agarwal in 2018, we aim to facilitate a zero-waste future and foster employment for informal workers, thus ensuring their security and dignity.
                 </p>
 
                 {/* Read More Button */}
-                <button className="flex items-center gap-2 px-4 py-3 bg-white border border-black/5 rounded-full shadow-[0_-4px_5.4px_0_rgba(0,0,0,0.08)_inset] hover:shadow-lg transition-shadow w-fit" aria-label="Read more about us">
+                <button className="flex items-center gap-2 px-4 py-3 bg-white border border-black/5 rounded-full shadow-[0_-4px_5.4px_0_rgba(0,0,0,0.08)_inset] hover:shadow-lg transition-shadow w-fit mx-auto lg:mx-0" aria-label="Read more about us">
                   <span className="text-black font-urbanist text-base font-medium">Read more</span>
                   <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
                     <svg
@@ -231,7 +253,7 @@ export default function Index() {
       </section>
 
       {/* What We Do Section - replicated from Spark Studio */}
-      <section id="what-we-do" className="bg-white py-16 md:py-20 lg:py-24 px-4 md:px-16">
+      <section id="what-we-do" className="scroll-mt-24 bg-white py-16 md:py-20 lg:py-24 px-4 md:px-16">
         <div className="flex flex-col items-center gap-6 md:gap-10">
           {/* Section Badge */}
           <div className="flex items-center justify-center gap-2 px-3 py-1 rounded-full bg-[#DEDEDE]">
@@ -246,7 +268,7 @@ export default function Index() {
             {/* Hero Text Section */}
             <div className="flex flex-col justify-center items-center gap-4 md:gap-6 w-full">
               <div className="flex flex-col justify-center items-center gap-2 md:gap-3">
-                <h2 className="text-3xl md:text-5xl lg:text-6xl font-medium text-black text-center font-urbanist max-w-[790px] leading-tight px-4">
+                <h2 className="text-[54px] font-medium text-black text-center font-urbanist max-w-[790px] leading-tight px-4">
                   Driving Everyday Action for a Greener Tomorrow
                 </h2>
                 <p className="text-base md:text-lg lg:text-xl font-normal text-black text-center font-urbanist opacity-70 w-full max-w-4xl px-4">
@@ -259,18 +281,18 @@ export default function Index() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 w-full items-stretch gap-6 lg:gap-7">
               {/* Segregation at Source Card */}
               <div
-                className="group flex flex-col justify-end items-center gap-3 h-full p-4 md:p-6 pb-6 md:pb-10 rounded-2xl relative overflow-hidden min-h-[462px] bg-[#F1F2F6]"
+                className="group flex flex-col justify-end items-center gap-3 h-full p-4 md:p-6 pb-6 md:pb-10 rounded-2xl relative overflow-hidden min-h-[380px] bg-[#E9EEF3]"
                 data-prehover
               >
                 <img
-                  src="/frame-370.png"
+                  src="/OSG/frame-370.png"
                   alt="Segregation at Source visual"
-                  className="absolute inset-0 w-full h-full object-cover opacity-100 scale-100 transition-all duration-500 ease-out group-hover:opacity-100 group-hover:scale-100"
+                  className="absolute inset-0 w-full h-full object-cover opacity-100 blur-sm scale-105 transition-all duration-500 ease-out group-hover:blur-0 group-hover:scale-100"
                 />
                 {/* Dark overlay for readability on hover */}
-                <div className="absolute inset-0 bg-black/40 opacity-100 transition-opacity duration-300 ease-out group-hover:opacity-100" aria-hidden="true"></div>
+                <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100" aria-hidden="true"></div>
                 {/* Keep content visible; only change colors on hover */}
-                <div className="relative z-10 flex flex-col justify-end items-start gap-3 md:gap-4 w-full text-white transition-colors duration-300 ease-out">
+                <div className="relative z-10 flex flex-col justify-end items-start gap-3 md:gap-4 w-full transition-colors duration-300 ease-out">
                   {/* Trash Icon */}
                   <div className="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 bg-white rounded-full">
                     <svg width="56" height="56" viewBox="0 0 56 56" fill="none" className="w-12 h-12 md:w-14 md:h-14">
@@ -281,10 +303,10 @@ export default function Index() {
                   </div>
 
                   <div className="flex flex-col items-start gap-3 md:gap-4 w-full">
-                    <h3 className="text-xl md:text-2xl lg:text-[28px] font-medium text-black group-hover:text-white transition-colors font-urbanist w-full text-white">
+                    <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold text-black group-hover:text-white transition-colors font-urbanist w-full">
                       Segregation at Source
                     </h3>
-                    <p className="text-sm md:text-base font-normal text-black group-hover:text-white/90 font-urbanist opacity-100 group-hover:opacity-100 w-full h-10 md:h-[50px] overflow-hidden text-ellipsis transition-colors text-white/90">
+                    <p className="text-sm md:text-base font-normal text-black group-hover:text-white/90 font-urbanist opacity-80 group-hover:opacity-100 w-full h-10 md:h-[50px] overflow-hidden text-ellipsis transition-colors">
                       Segregating waste is the first and most crucial step in responsible waste management. We help you understand what goes where, how to do it right, and make it easy to get started.
                     </p>
                   </div>
@@ -303,11 +325,11 @@ export default function Index() {
               </div>
 
               {/* Recyclable Waste Pickups Card */}
-              <div className="group flex flex-col justify-end items-center gap-3 h-full p-4 md:p-6 pb-6 md:pb-10 rounded-2xl min-h-[462px] bg-[#F1F2F6] relative overflow-hidden">
+              <div className="group flex flex-col justify-end items-center gap-3 h-full p-4 md:p-6 pb-6 md:pb-10 rounded-2xl min-h-[380px] bg-[#E9EEF3] relative overflow-hidden">
                 <img
-                  src="/frame-380.png"
+                  src="/OSG/frame-380.png"
                   alt="Recyclable Waste Pickups visual"
-                  className="absolute inset-0 w-full h-full object-cover opacity-0 scale-105 transition-all duration-500 ease-out group-hover:opacity-100 group-hover:scale-100"
+                  className="absolute inset-0 w-full h-full object-cover opacity-100 blur-sm scale-105 transition-all duration-500 ease-out group-hover:blur-0 group-hover:scale-100"
                 />
                 {/* Dark overlay for readability on hover */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100" aria-hidden="true"></div>
@@ -323,7 +345,7 @@ export default function Index() {
                   </div>
 
                   <div className="flex flex-col items-start gap-3 md:gap-4 w-full">
-                    <h3 className="text-xl md:text-2xl lg:text-[28px] font-medium text-black group-hover:text-white transition-colors font-urbanist w-full">
+                    <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold text-black group-hover:text-white transition-colors font-urbanist w-full">
                       Recyclable Waste Pickups
                     </h3>
                     <p className="text-sm md:text-base font-normal text-black group-hover:text-white/90 font-urbanist opacity-80 group-hover:opacity-100 w-full h-10 md:h-[50px] overflow-hidden text-ellipsis transition-colors">
@@ -346,11 +368,11 @@ export default function Index() {
             </div>
 
               {/* Tree Plantations Card */}
-              <div className="group flex flex-col justify-end items-center gap-3 h-full p-4 md:p-6 pb-6 md:pb-10 rounded-2xl min-h-[462px] bg-[#F1F2F6] relative overflow-hidden">
+              <div className="group flex flex-col justify-end items-center gap-3 h-full p-4 md:p-6 pb-6 md:pb-10 rounded-2xl min-h-[380px] bg-[#E9EEF3] relative overflow-hidden">
                 <img
-                  src="/frame-410.png"
+                  src="/OSG/frame-410.png"
                   alt="Tree Plantations visual"
-                  className="absolute inset-0 w-full h-full object-cover opacity-0 scale-105 transition-all duration-500 ease-out group-hover:opacity-100 group-hover:scale-100"
+                  className="absolute inset-0 w-full h-full object-cover opacity-100 blur-sm scale-105 transition-all duration-500 ease-out group-hover:blur-0 group-hover:scale-100"
                 />
                 {/* Dark overlay for readability on hover */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100" aria-hidden="true"></div>
@@ -366,7 +388,7 @@ export default function Index() {
                   </div>
 
                   <div className="flex flex-col items-start gap-3 md:gap-4 w-full">
-                    <h3 className="text-xl md:text-2xl lg:text-[28px] font-medium text-black group-hover:text-white transition-colors font-urbanist w-full">
+                    <h3 className="text-xl md:text-2xl lg:text-[28px] font-bold text-black group-hover:text-white transition-colors font-urbanist w-full">
                       Tree Plantations
                     </h3>
                     <p className="text-sm md:text-base font-normal text-black group-hover:text-white/90 font-urbanist opacity-80 group-hover:opacity-100 w-full h-10 md:h-[50px] overflow-hidden text-ellipsis transition-colors">
@@ -393,7 +415,7 @@ export default function Index() {
       </section>
 
       {/* Our Impact Section */}
-      <section id="our-impact" className="bg-white py-16 md:py-20 lg:py-24 px-4 md:px-16">
+      <section id="our-impact" className="scroll-mt-24 bg-white py-16 md:py-20 lg:py-24 px-4 md:px-16">
         <div className="flex flex-col items-center gap-6 md:gap-10 max-w-[1312px] mx-auto w-full">
           {/* Section Badge */}
           <div className="flex items-center justify-center gap-2 px-3 py-1 rounded-full bg-[#DEDEDE]">
@@ -421,26 +443,26 @@ export default function Index() {
             {/* Left Stats */}
             <div className="flex flex-col gap-10 order-2 lg:order-1">
               <div className="text-left md:text-right">
-                <p className="text-sm text-black/60 font-urbanist">Homes Powered by Saved Electricity</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">45,45,455</p>
+                <p className="text-sm text-black/60 font-urbanist">TOTAL KGS OF WASTE RECYCLED</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">12,72,845</p>
               </div>
               <div className="text-left md:text-right">
-                <p className="text-sm text-black/60 font-urbanist">Oxygen Generated</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">45,45,45,455 lbs</p>
+                <p className="text-sm text-black/60 font-urbanist">NUMBER OF PEOPLE REACHED THROUGH TALKS AND TRAININGS</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">5,00,000+</p>
               </div>
               <div className="text-left md:text-right">
-                <p className="text-sm text-black/60 font-urbanist">Households Involved</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">45,455+</p>
+                <p className="text-sm text-black/60 font-urbanist">TREES SAVED+PLANTED</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">68,537</p>
               </div>
               <div className="text-left md:text-right">
-                <p className="text-sm text-black/60 font-urbanist">Carbon Sequestered</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">45,45,455 lbs</p>
+                <p className="text-sm text-black/60 font-urbanist">HOUSEHOLDS</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">30,000+</p>
               </div>
             </div>
 
             {/* Center Image with radial ticks */}
             <div className="relative order-1 lg:order-2 flex items-center justify-center">
-              <div className="relative w-72 h-72 md:w-[420px] md:h-[420px] rounded-full overflow-hidden">
+              <div className="relative w-64 h-64 sm:w-72 sm:h-72 md:w-[420px] md:h-[420px] rounded-full overflow-hidden">
                 {/* Decorative radial ticks */}
                 <div className="absolute inset-0" aria-hidden>
                   {Array.from({ length: 20 }).map((_, i) => (
@@ -454,7 +476,7 @@ export default function Index() {
                   ))}
                 </div>
                 <img
-                  src="/frame-500.png"
+                  src="/OSG/frame-500.png"
                   alt="Hand nurturing a small plant"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
@@ -464,20 +486,20 @@ export default function Index() {
             {/* Right Stats */}
             <div className="flex flex-col gap-10 order-3">
               <div>
-                <p className="text-sm text-black/60 font-urbanist">Total Waste Recycled</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">45,45,455 kg</p>
+                <p className="text-sm text-black/60 font-urbanist">LITERS OF WATER SAVED</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">3,10,84,852</p>
               </div>
               <div>
-                <p className="text-sm text-black/60 font-urbanist">Trees Planted/Saved</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">45,455</p>
+                <p className="text-sm text-black/60 font-urbanist">CUBIC METERS OF LANDFILL SPACE PREVENTED</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">8,232</p>
               </div>
               <div>
-                <p className="text-sm text-black/60 font-urbanist">Water Saved</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">4,45,45,455 L</p>
+                <p className="text-sm text-black/60 font-urbanist">HOMES POWERED WITH ELECTRICITY SAVED</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">15,48,120</p>
               </div>
               <div>
-                <p className="text-sm text-black/60 font-urbanist">Landfill Space Prevented</p>
-                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">4,455 m³</p>
+                <p className="text-sm text-black/60 font-urbanist">OXYGEN GENERATED POUNDS</p>
+                <p className="text-2xl md:text-3xl lg:text-4xl text-black font-urbanist mt-1">44,45,21,221</p>
               </div>
             </div>
           </div>

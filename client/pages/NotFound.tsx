@@ -13,7 +13,7 @@ export default function NotFound() {
         </div>
         
         <Link 
-          to="/"
+          to="/OSG"
           className="inline-flex items-center gap-2 px-6 py-3 bg-lime-green hover:bg-lime-green/90 text-black font-urbanist font-medium rounded-full transition-colors"
         >
           Return Home
